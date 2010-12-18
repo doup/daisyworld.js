@@ -1,0 +1,156 @@
+<html>
+<head>
+</head>
+<body onload='init()'>
+<script>
+var DaisyWorld = (function () {
+  var albedoGround = 0.5,
+      albedoBlack = 0.25,
+      albedoWhite = 0.75,
+      albedoTotal,
+      areaTotal = 1.0,
+      areaBlack,
+      areaWhite,
+      areaAvailable,
+      deathRate = 0.2,
+      growthBlack,
+      growthWhite,
+      initCB,
+      mainTimeout = 50,
+      solarConstant = 1000,
+      solarLuminosity = 0.7,
+      stefansConstant = 0.0000000567,
+      tempConstant = 20, // constant used to calculate local temperature as a function of albedo (default q = 20)
+      tempGlobal,
+      tempGlobalDead,
+      tempLocalBlack,
+      tempLocalWhite,
+      time = 0,
+      timeSpeed = 1,
+      updateCB;
+
+  function getData() {
+    return {
+      'time':            time,
+      'areaAvailable':   areaAvailable,
+      'areaTotal':       areaTotal,
+      'areaBlack':       areaBlack,
+      'areaWhite':       areaWhite,
+      'albedoTotal':     albedoTotal,
+      'solarLuminosity': solarLuminosity,
+      'tempGlobal':      tempGlobal,
+      'tempGlobalDead':  tempGlobalDead,
+      'tempLocalBlack':  tempLocalBlack,
+      'tempLocalWhite':  tempLocalWhite
+    };
+  }
+
+  function reset() {
+    areaBlack = 0.2;
+    areaWhite = 0.2;
+
+    initCB(getData());
+  }
+
+  function main() {
+    setTimeout(main, mainTimeout);
+
+    // Advance in time
+    time += timeSpeed;
+
+    // Calculate available area
+    areaAvailable = areaTotal - (areaBlack + areaWhite);
+
+    // Calculate total planetary albedo
+    albedoTotal = (areaAvailable * albedoGround) + (areaBlack * albedoBlack) + (areaWhite * albedoWhite);
+
+    /* Calculate global temperature
+     * ber 0.25 = erro 4
+     */
+    tempGlobal = Math.pow((solarConstant * solarLuminosity * (1 - albedoTotal)) / stefansConstant, 0.25) - 273;
+    tempGlobalDead = Math.pow((solarConstant * solarLuminosity * (1 - (areaTotal * albedoGround))) / stefansConstant, 0.25) - 273;
+
+    // Calculate local temperatures
+    tempLocalBlack = (tempConstant * (albedoTotal - albedoBlack)) + tempGlobal;
+    tempLocalWhite = (tempConstant * (albedoTotal - albedoWhite)) + tempGlobal;
+
+    // Daisy growth rates
+    growthBlack = 1 - (0.003265 * Math.pow(22.5 - tempLocalBlack, 2));
+    growthWhite = 1 - (0.003265 * Math.pow(22.5 - tempLocalWhite, 2));
+
+    // Calculate new Daisy population
+    areaBlack += areaBlack * ((areaAvailable * growthBlack) - deathRate);
+    areaWhite += areaWhite * ((areaAvailable * growthWhite) - deathRate);
+
+    updateCB(getData());
+  }
+
+  return {
+    'init': function (ops) {
+      ops.onInit   = ops.onInit   || function(){};
+      ops.onUpdate = ops.onUpdate || function(){};
+
+      initCB   = ops.onInit;
+      updateCB = ops.onUpdate;
+
+      reset();
+
+      setTimeout(main, mainTimeout);
+    },
+    'reset': function () {
+      reset();
+    },
+    'setSolarLuminosity': function (value) {
+      solarLuminosity = value;
+    }
+  }
+})();
+
+function solarChange(value) {
+  DaisyWorld.setSolarLuminosity(value);
+}
+
+function init() {
+  DaisyWorld.init({
+    'onInit': function (d) {
+      document.getElementById('areaTotal').value       = d.areaTotal;
+      document.getElementById('solarLuminosity').value = d.solarLuminosity;  
+    },
+    'onUpdate': function (d) {
+      document.getElementById('time').value = d.time;
+
+      document.getElementById('areaAvailable').value = d.areaAvailable;
+      document.getElementById('areaBlack').value     = d.areaBlack;
+      document.getElementById('areaWhite').value     = d.areaWhite;
+
+      document.getElementById('albedoTotal').value = d.albedoTotal;
+
+      document.getElementById('tempGlobal').value     = d.tempGlobal;
+      document.getElementById('tempGlobalDead').value = d.tempGlobalDead;
+      document.getElementById('tempLocalBlack').value = d.tempLocalBlack;
+      document.getElementById('tempLocalWhite').value = d.tempLocalWhite;
+    }
+  });
+}
+
+function reset() {
+  document.getElementById('solarLuminosity').value = 0.7;
+  DaisyWorld.setSolarLuminosity(0.7);
+  DaisyWorld.reset();
+}
+</script>
+Time: <input type='text' id='time'/><br/>
+Total Area: <input type='text' id='areaTotal'/><br/>
+Available Area: <input type='text' id='areaAvailable'/><br/>
+Black Area: <input type='text' id='areaBlack'/><br/>
+White Area: <input type='text' id='areaWhite'/><br/>
+Total Albedo: <input type='text' id='albedoTotal'/><br/>
+Global temperature without Life: <input type='text' id='tempGlobalDead'/><br/>
+Global temperature with Life: <input type='text' id='tempGlobal'/><br/>
+Black local temperature: <input type='text' id='tempLocalBlack'/><br/>
+White local temperature: <input type='text' id='tempLocalWhite'/><br/>
+<hr>
+Solar luminosity: <input type='text' onChange='solarChange(this.value)' id='solarLuminosity'/><br/>
+<input type='button' value="Reset" onClick='reset()'/>
+</body>
+</html>
