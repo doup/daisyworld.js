@@ -114,21 +114,21 @@ function init() {
   DaisyWorld.init({
     'onInit': function (d) {
       document.getElementById('areaTotal').value       = d.areaTotal;
-      document.getElementById('solarLuminosity').value = d.solarLuminosity;  
+      document.getElementById('solarLuminosity').value = d.solarLuminosity;
     },
     'onUpdate': function (d) {
       document.getElementById('time').value = d.time;
 
-      document.getElementById('areaAvailable').value = d.areaAvailable;
-      document.getElementById('areaBlack').value     = d.areaBlack;
-      document.getElementById('areaWhite').value     = d.areaWhite;
+      document.getElementById('areaAvailable').value = d.areaAvailable.toFixed(2);
+      document.getElementById('areaBlack').value     = d.areaBlack.toFixed(2);
+      document.getElementById('areaWhite').value     = d.areaWhite.toFixed(2);
 
-      document.getElementById('albedoTotal').value = d.albedoTotal;
+      document.getElementById('albedoTotal').value = d.albedoTotal.toFixed(2);
 
-      document.getElementById('tempGlobal').value     = d.tempGlobal;
-      document.getElementById('tempGlobalDead').value = d.tempGlobalDead;
-      document.getElementById('tempLocalBlack').value = d.tempLocalBlack;
-      document.getElementById('tempLocalWhite').value = d.tempLocalWhite;
+      document.getElementById('tempGlobal').value     = d.tempGlobal.toFixed(2);
+      document.getElementById('tempGlobalDead').value = d.tempGlobalDead.toFixed(2);
+      document.getElementById('tempLocalBlack').value = d.tempLocalBlack.toFixed(2);
+      document.getElementById('tempLocalWhite').value = d.tempLocalWhite.toFixed(2);
     }
   });
 }
